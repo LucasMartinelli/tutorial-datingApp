@@ -4,6 +4,7 @@ import { MembersService } from 'src/app/_services/members.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from '@kolkov/ngx-gallery';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
+import { ToastrService } from 'ngx-toastr';
 import { Message } from 'src/app/_models/message';
 import { MessageService } from 'src/app/_services/message.service';
 import { PresenceService } from 'src/app/_services/presence.service';
@@ -25,15 +26,17 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
   messages: Message[] = [];
   user: User;
 
-  constructor(public presence: PresenceService, private route: ActivatedRoute, 
+  constructor(private memberService: MembersService, private toastr: ToastrService,
+    public presence: PresenceService, private route: ActivatedRoute,
     private messageService: MessageService, private accountService: AccountService,
-    private router: Router) { 
+    private router: Router) {
       this.accountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
       this.router.routeReuseStrategy.shouldReuseRoute = () => false;
     }
 
   ngOnInit(): void {
     this.route.data.subscribe(data => {
+      console.log(data);
       this.member = data.member;
     })
 
@@ -84,6 +87,12 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
     } else {
       this.messageService.stopHubConnection();
     }
+  }
+
+  addLike(member: Member) {
+    this.memberService.addLike(member.username).subscribe(() => {
+      this.toastr.success('You have liked ' + member.knownAs);
+    })
   }
 
   ngOnDestroy(): void {
